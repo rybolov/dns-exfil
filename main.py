@@ -79,6 +79,10 @@ def sendqueries(b64data):
             print("Received NXDOMAIN answer")
             print('')
             continue
+        except dns.resolver.NoAnswer:
+            print("Received a blank answer to the query")
+            print('')
+            continue
         except:
             quit('666 There was an error with the DNS query')
         else:

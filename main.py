@@ -71,13 +71,21 @@ def sendqueries(b64data):
     for word in b64array:
         queryname = word + '.' + domain
         print('Query %s %s %s' % (str(counter), queryname, type))
-        result = dns.resolver.resolve(queryname, type)
         if args.demo:
             makedots(3)
-        if args.verbose:
-            print(str(result.response))
+        try:
+            result = dns.resolver.resolve(queryname, type)
+        except dns.resolver.NXDOMAIN:
+            print("Received NXDOMAIN answer")
             print('')
-        counter += 1
+            continue
+        except:
+            quit('666 There was an error with the DNS query')
+        else:
+            if args.verbose:
+                print(str(result.response))
+                print('')
+            counter += 1
 
 def makedots(sleepytime):
     for counter in range(0, sleepytime):

